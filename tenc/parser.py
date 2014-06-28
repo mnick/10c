@@ -291,9 +291,17 @@ class ReVerb(TabDelimited):
     val_idx = 8
 
 
-@register_parser('patty-semi-synth', '')
-class PattySemiSynth(TabDelimited):
+@register_parser('ypss-surface', '')
+class YPSSSurface(TabDelimited):
     """
     Parser for semi-synthethic Patty data, based on tab parser
     """
-    val_idx = 3
+    val_idx = 6
+
+@register_parser('ypss-facts', '')
+class YPSSFacts(TabDelimited):
+    """
+    Parser for semi-synthethic Patty data, based on tab parser
+    """
+    val_idx = 6
+    offset = 3
