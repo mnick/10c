@@ -85,7 +85,8 @@ class TZArchive(object):
         self.arc = tarfile.open(fjoin(fname, self.ARC_SUFFIX), mode)
 
     def __del__(self):
-        self.arc.close()
+        if self.arc is not None:
+            self.arc.close()
 
     def __get_index(self, mode, prune_idx=None):
         f = fjoin(mode, self.MAP_SUFFIX)
