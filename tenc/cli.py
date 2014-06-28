@@ -74,9 +74,9 @@ def main():
                    help='Create initial config file')
 
     # if config file exists read its content and set as defaults for optparse
-    if os.path.exists('tenc.cfg'):
-        conf = ConfigObj('tenc.cfg')
-        opt.set_defaults(**conf['tenc'])
+    #if os.path.exists('tenc.cfg'):
+    #    conf = ConfigObj('tenc.cfg')
+    #    opt.set_defaults(**conf['tenc'])
 
     # parse cli options
     (options, args) = opt.parse_args()
@@ -127,7 +127,8 @@ def main():
         log.info('Reading data from %s' % fin)
 
     if options.do_convert:
-        p = parser_cls(options.prefix, conf['attributes'])
+        attributes = {}
+        p = parser_cls(options.prefix, attributes)
         p.convert(options.file)
 
     s = ser_cls(options.prefix)
