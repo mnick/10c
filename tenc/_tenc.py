@@ -227,13 +227,6 @@ def prune(min_count, nnz, SZ, name='object'):
     return pidx
 
 
-def prune_entities(subs, min_count=1):
-    eidx = np.concatenate((subs[:, 0], subs[:, 1]))
-    c = Counter(eidx)  # count attibute occurrences
-    idx = [i[0] for i in c.iteritems() if i[1] > min_count]
-    return idx
-
-
 # code from
 # http://stackoverflow.com/questions/845058/how-to-get-line-count-cheaply-in-python
 def linecount(filename):
