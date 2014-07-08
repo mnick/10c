@@ -1,5 +1,5 @@
 # tenc - tool to convert large multigraphs to adjacency tensors
-# Copyright (C) 2012 Maximilian Nickel <nickel@dbs.ifi.lmu.de>
+# Copyright (C) 2012 Maximilian Nickel <mnick@mit.edu>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,12 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
 from collections import defaultdict
 from itertools import count
-import tarfile
 import tempfile
-import json
 
 from tenc import MAP, TZArchive, register_parser, converter
 from tenc._tenc import fjoin, write_tensor_size, write_tensor_index
@@ -38,19 +35,17 @@ class Converter(TZArchive):
     fout_subs = None
     fout_eattr = None
     fout_rattr = None
-    arc = None
 
     def __init__(self, fname='tensor', attr_map={}):
-        self.fname = fname
+        super(Converter, self).__init__(fname, 'w:bz2')
         self.attr_map = attr_map
-        self.files = dict()
         self.eattr_dict = defaultdict(int)
         self.rattr_dict = defaultdict(int)
 
         # setup id -> idx maps
         # for semantics of array entries see MAP_ORDER
-        self.idx = [count() for _ in xrange(MAP.length)]
-        self.maps = [defaultdict(self.idx[i].next) for i in xrange(MAP.length)]
+        self.idx = [count() for _ in range(MAP.length)]
+        self.maps = [defaultdict(self.idx[i].next) for i in range(MAP.length)]
 
         # setup predicate fact counter
         self.nnz = {
@@ -59,10 +54,6 @@ class Converter(TZArchive):
             MAP.EATTR: 0,
             MAP.RATTR: 0
         }
-
-    def add(self, f, arcname):
-        self.files[os.path.abspath(f.name)] = arcname
-        f.flush()
 
     def convert(self, input_files):
         # Setup temporary files
@@ -98,21 +89,6 @@ class Converter(TZArchive):
 
         self.compress()
 
-    def compress(self):
-        from io import StringIO
-        arc = tarfile.open(fjoin(self.fname, self.ARC_SUFFIX), 'w:bz2')
-
-        metainfo = unicode(json.dumps({
-            'fname': self.fname,
-        }))
-
-        #fmeta = tarfile.TarInfo('meta.json')
-        #fmeta.size = len(metainfo)
-        #arc.addfile(fmeta, StringIO(metainfo))
-        for f, aname in self.files.iteritems():
-            log.debug('Adding %s -> %s to archive' % (f, aname))
-            arc.add(f, arcname=aname)
-        arc.close()
 
     def parse(self, fin):
         raise NotImplementedError()

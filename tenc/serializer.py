@@ -2,7 +2,6 @@ import logging
 import numpy as np
 from scipy.io.matlab import savemat
 from scipy.sparse import coo_matrix
-import tarfile
 
 from tenc import MAP, register_serializer
 from _tenc import TZArchive, Counter

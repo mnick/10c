@@ -26,7 +26,7 @@ from tenc import available_parsers, available_serializers
 
 # setup logging
 log = logging.getLogger('10c')
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # import local modules
 if os.path.exists('./_tenc_local.py'):

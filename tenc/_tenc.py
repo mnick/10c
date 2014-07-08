@@ -1,5 +1,5 @@
 # tenc - tool to convert large multigraphs to adjacency tensors
-# Copyright (C) 2012 Maximilian Nickel <nickel@dbs.ifi.lmu.de>
+# Copyright (C) 2012 Maximilian Nickel <mnick@mit.edu>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 import logging
 from collections import defaultdict
 import tarfile
+import os
+import json
 import numpy as np
 
 try:
@@ -82,11 +84,29 @@ class TZArchive(object):
     def __init__(self, fname, mode):
         log.debug('Opening archive %s in mode %s' % (fname, mode))
         self.fname = fname
+        self.files = dict()
         self.arc = tarfile.open(fjoin(fname, self.ARC_SUFFIX), mode)
 
     def __del__(self):
         if self.arc is not None:
             self.arc.close()
+
+    def add(self, f, arcname):
+        """add file to archive"""
+        self.files[os.path.abspath(f.name)] = arcname
+        f.flush()
+
+    def compress(self):
+        from io import StringIO
+        metainfo = unicode(json.dumps({
+            'fname': self.fname,
+        }))
+
+        for f, aname in self.files.iteritems():
+            log.debug('Adding %s -> %s to archive' % (f, aname))
+            self.arc.add(f, arcname=aname)
+        self.arc.close()
+        self.arc = None
 
     def __get_index(self, mode, prune_idx=None):
         f = fjoin(mode, self.MAP_SUFFIX)
@@ -111,28 +131,28 @@ class TZArchive(object):
         return self.__get_index(self.PREDICATES_FOUT + '_attr')
 
 
-def fjoin(fout, suffix, prefix=None):
+def fjoin(fname, suffix, prefix=None):
     """
     Helper function, creates file name for basename, suffix and prefix
     """
     template = '%s.%s'
     if prefix is not None:
         template = '%s-%s' % (prefix, template)
-    return template % (fout, suffix)
+    return template % (fname, suffix)
 
 
 def write_tensor_size(fout, entity_map, predicate_map, nnz):
     """
     Write size of the tensor to file
 
-    Format
-    ------
-      > Number entities
-      > Number predicates
-      > For all entities: number of occurrences
-      > For all predicates: number of occurrences
-      > Number of entity attributes
-      > Number of predicate attributes
+    File Format
+    -----------
+    line 1: Number entities
+    line 2: Number predicates
+    line 3: For all entities: number of occurrences
+    line 4: For all predicates: number of occurrences
+    line 5: Number of entity attributes
+    line 6: Number of predicate attributes
     """
     log.debug('Writing tensor size to %s' % fout.name)
     N = len(entity_map)
@@ -154,8 +174,8 @@ def write_tensor_index(fout, index, sort=True):
       fout: file-like object
       index: dict with key = id and value = tensor index entries
 
-    Format
-    ------
+    File Format
+    -----------
     length: %(number of entries)
     %(name for entry with idx 0)
     %(name for entry with idx 1)
@@ -239,5 +259,4 @@ def linecount(filename):
     while buf:
         lines += buf.count('\n')
         buf = read_f(buf_size)
-
     return lines
